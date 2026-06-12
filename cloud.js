@@ -8,7 +8,7 @@
     'use strict';
 
     const CONFIG = {
-        SCRIPT_URL: 'https://script.google.com/macros/library/d/1aG7uoL-2RrN1kIkpsWQ4cX42y6vzmM4UKR-mTaCpyvyw1h1f0DSXQLQy/2'
+        SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbyRqMJqYRWzbFzIwwlqhCmlFcLF3c68sEODa98IjdOXg_9jpitz4MP69v14S2oLjlI/exec'
     };
 
     const KEY_TO_TABLE = {
