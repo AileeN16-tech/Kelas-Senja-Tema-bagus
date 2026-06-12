@@ -35,6 +35,12 @@
                 <div class="pa-live-date">
                     <strong id="paTanggalHariIni">Hari ini</strong>
                     <span id="paJamHariIni">--:--</span>
+                    <div class="pa-sync-control" aria-live="polite">
+                        <button type="button" class="pa-btn pa-btn-primary pa-sync-button" id="btnSyncNow">
+                            <span aria-hidden="true">↻</span> Sinkronkan
+                        </button>
+                        <span id="syncSummary" class="pa-sync-summary">Data lokal siap digunakan</span>
+                    </div>
                     <div data-user-badge class="user-badge-space"></div>
                 </div>
             </div>
@@ -43,7 +49,7 @@
                 <button type="button" class="pa-tab active" data-tab="jadwal">📅 Jadwal Mengajar</button>
                 <button type="button" class="pa-tab" data-tab="laporan">✏️ Input Laporan</button>
                 <button type="button" class="pa-tab" data-tab="siswa">👤 Data Siswa</button>
-                <button type="button" class="pa-tab admin-only" data-tab="invoice">🧾 Invoice</button>
+                <button type="button" class="pa-tab" data-tab="invoice">🧾 Invoice</button>
                 <button type="button" class="pa-tab" data-tab="riwayat">📋 Riwayat Laporan</button>
                 <button type="button" class="pa-tab" data-tab="statistik">📊 Statistik</button>
                 <button type="button" class="pa-tab admin-only" data-tab="tutor">👨‍🏫 Data Tutor</button>
@@ -262,7 +268,7 @@
             </div>
 
             <div class="pa-panel" id="tab-invoice">
-                <div class="pa-invoice-layout admin-only">
+                <div class="pa-invoice-layout">
                     <div class="pa-card pa-invoice-form-card">
                         <div class="pa-card-title">🧾 Buat Tagihan</div>
                         <p class="pa-help pa-invoice-intro">Isi tiga informasi utama untuk membuat invoice siswa.</p>
@@ -299,7 +305,7 @@
                         <div class="pa-invoice-list-head">
                             <div>
                                 <div class="pa-card-title">Daftar Invoice</div>
-                                <p class="pa-help">Kelola status pembayaran, salin tagihan, atau hapus invoice.</p>
+                                <p class="pa-help">Kelola status pembayaran, salin tagihan, atau hapus invoice. Tutor hanya melihat invoice siswa yang ditanganinya.</p>
                             </div>
                             <span class="pa-invoice-count" id="invoiceCount">0 invoice</span>
                         </div>
@@ -372,11 +378,6 @@
     <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
     <script src="cloud.js"></script>
     <script src="theme.js"></script>
-    <script>
-        PACloud.boot().then(function(result){
-            if (!result || result.unauthorized || result.offline) return;
-            PACloud.loadScript('jadwal_laporan.js');
-        });
-    </script>
+    <script src="jadwal_laporan.js"></script>
 </body>
 </html>

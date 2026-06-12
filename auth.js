@@ -1,10 +1,17 @@
 (function () {
+    'use strict';
+
     const AUTH_KEY = 'pa_auth_session_v1';
     const TUTOR_KEY = 'pa_tutors_v3';
+    const USER_CACHE_PREFIX = 'pa_user_cache_v1:';
+    const LAST_USERNAME_KEY = 'pa_last_username_v1';
 
     function loadJSON(key, fallback) {
         try {
-            return JSON.parse(localStorage.getItem(key)) || fallback;
+            const raw = localStorage.getItem(key);
+            if (raw === null || raw === '') return fallback;
+            const parsed = JSON.parse(raw);
+            return parsed === null || parsed === undefined ? fallback : parsed;
         } catch (error) {
             return fallback;
         }
@@ -12,6 +19,7 @@
 
     function saveJSON(key, value) {
         localStorage.setItem(key, JSON.stringify(value));
+        return value;
     }
 
     function escapeHTML(text) {
@@ -46,6 +54,50 @@
             .slice(0, 14) || 'tutor';
     }
 
+    function getSession() {
+        return loadJSON(AUTH_KEY, null);
+    }
+
+    function setSession(session) {
+        saveJSON(AUTH_KEY, session);
+        if (session && session.username) localStorage.setItem(LAST_USERNAME_KEY, String(session.username));
+        return session;
+    }
+
+    function sessionIdentity(session) {
+        const current = session || getSession();
+        if (!current) return 'guest';
+        const identity = current.userId || current.tutorId || current.username || current.nama || 'user';
+        return String(identity).replace(/[^a-zA-Z0-9_-]/g, '_');
+    }
+
+    function userDataKey(key, session) {
+        return USER_CACHE_PREFIX + sessionIdentity(session) + ':' + String(key || 'data');
+    }
+
+    function loadUserJSON(key, fallback, session) {
+        return loadJSON(userDataKey(key, session), fallback);
+    }
+
+    function saveUserJSON(key, value, session) {
+        return saveJSON(userDataKey(key, session), value);
+    }
+
+    function removeUserData(key, session) {
+        localStorage.removeItem(userDataKey(key, session));
+    }
+
+    function migrateLegacyDashboardData(keys, session) {
+        const current = session || getSession();
+        if (!current || current.role !== 'admin') return;
+        (keys || []).forEach(key => {
+            const scopedKey = userDataKey(key, current);
+            if (localStorage.getItem(scopedKey) !== null) return;
+            const legacy = localStorage.getItem(key);
+            if (legacy !== null) localStorage.setItem(scopedKey, legacy);
+        });
+    }
+
     function loadTutors() {
         const tutors = loadJSON(TUTOR_KEY, []);
         const oldApplicants = loadJSON('petaAcademyTutorApplicants', []);
@@ -75,7 +127,15 @@
     }
 
     function saveTutors(tutors) {
-        saveJSON(TUTOR_KEY, tutors);
+        return saveJSON(TUTOR_KEY, tutors);
+    }
+
+    function loadUserTutors(session) {
+        return loadUserJSON(TUTOR_KEY, [], session);
+    }
+
+    function saveUserTutors(tutors, session) {
+        return saveUserJSON(TUTOR_KEY, tutors, session);
     }
 
     function createTutorCredential(name, wa) {
@@ -91,23 +151,17 @@
         }
 
         const password = 'PA' + Math.random().toString(36).slice(2, 6).toUpperCase() + lastDigits;
-
         return { username, password };
-    }
-
-    function getSession() {
-        return loadJSON(AUTH_KEY, null);
-    }
-
-    function setSession(session) {
-        saveJSON(AUTH_KEY, session);
     }
 
     async function logout() {
         const session = getSession();
         try {
             if (session && session.token && window.PACloud && PACloud.isConfigured()) {
-                await PACloud.request('logout', { token: session.token }, { skipToken: true });
+                await Promise.race([
+                    PACloud.request('logout', { token: session.token }, { skipToken: true }),
+                    new Promise(resolve => setTimeout(resolve, 700))
+                ]);
             }
         } catch (error) {
             console.warn('Logout server gagal:', error);
@@ -125,7 +179,7 @@
         const session = getSession();
         if (!session || !session.token) {
             const from = encodeURIComponent(location.pathname.split('/').pop() || 'jadwal_laporan.html');
-            window.location.href = `login.html?from=${from}`;
+            window.location.replace(`login.html?from=${from}`);
             return null;
         }
         return session;
@@ -151,6 +205,10 @@
         const result = response.result || { success: false };
         if (result.success && result.session) setSession(result.session);
         return result;
+    }
+
+    function getLastUsername() {
+        return localStorage.getItem(LAST_USERNAME_KEY) || '';
     }
 
     function updateAuthNav() {
@@ -182,6 +240,8 @@
         });
 
         document.querySelectorAll('[data-logout]').forEach(btn => {
+            if (btn.dataset.logoutBound === 'true') return;
+            btn.dataset.logoutBound = 'true';
             btn.addEventListener('click', logout);
         });
     }
@@ -189,13 +249,22 @@
     window.PAAuth = {
         AUTH_KEY,
         TUTOR_KEY,
+        USER_CACHE_PREFIX,
         loadJSON,
         saveJSON,
+        loadUserJSON,
+        saveUserJSON,
+        removeUserData,
+        userDataKey,
+        sessionIdentity,
+        migrateLegacyDashboardData,
         escapeHTML,
         normalizeWA,
         makeId,
         loadTutors,
         saveTutors,
+        loadUserTutors,
+        saveUserTutors,
         createTutorCredential,
         getSession,
         setSession,
@@ -203,6 +272,7 @@
         logout,
         requireLogin,
         login,
+        getLastUsername,
         updateAuthNav
     };
 

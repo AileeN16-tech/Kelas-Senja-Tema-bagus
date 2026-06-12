@@ -2099,3 +2099,112 @@ html[data-ks-theme-tone="dark"] .ks-theme-preview {
         grid-template-columns: 1fr;
     }
 }
+
+/* =========================================================
+   Local-first sync controls
+========================================================= */
+.pa-sync-control {
+    display: grid;
+    justify-items: end;
+    gap: 6px;
+}
+
+.pa-sync-button {
+    min-height: 40px;
+    padding: 8px 14px;
+    white-space: nowrap;
+}
+
+.pa-sync-button.is-syncing {
+    cursor: progress;
+}
+
+.pa-sync-summary {
+    max-width: 260px;
+    color: var(--body-subtle);
+    font-size: 0.72rem;
+    line-height: 1.35;
+    text-align: right;
+}
+
+.pa-sync-summary[data-state="pending"] { color: var(--warning); }
+.pa-sync-summary[data-state="warning"] { color: var(--warning); }
+.pa-sync-summary[data-state="ok"] { color: var(--success); }
+
+.pa-sync-spinner {
+    width: 15px;
+    height: 15px;
+    border: 2px solid color-mix(in srgb, currentColor 30%, transparent);
+    border-top-color: currentColor;
+    border-radius: 9999px;
+    animation: pa-spin 700ms linear infinite;
+}
+
+@keyframes pa-spin { to { transform: rotate(360deg); } }
+
+.pa-cloud-toast {
+    position: fixed;
+    z-index: 100000;
+    right: 18px;
+    bottom: 18px;
+    max-width: min(390px, calc(100vw - 36px));
+    padding: 12px 16px;
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-default);
+    color: var(--heading);
+    background: var(--glass-bg-strong);
+    -webkit-backdrop-filter: blur(20px) !important;
+    backdrop-filter: blur(20px) !important;
+    box-shadow: var(--glass-shadow);
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(20px);
+    transition: opacity 180ms ease, transform 180ms ease;
+}
+
+.pa-cloud-toast.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.pa-cloud-toast[data-type="ok"] { border-color: var(--border-success); }
+.pa-cloud-toast[data-type="error"] { border-color: var(--border-danger); }
+.pa-cloud-toast[data-type="local"] { border-color: var(--border-brand); }
+
+.pa-theme-floating-btn.is-active {
+    filter: brightness(1.04);
+    transform: translateY(-1px);
+}
+
+@media (max-width: 760px) {
+    .pa-live-date {
+        align-items: stretch;
+    }
+
+    .pa-sync-control {
+        width: 100%;
+        justify-items: stretch;
+    }
+
+    .pa-sync-button {
+        width: 100%;
+    }
+
+    .pa-sync-summary {
+        max-width: none;
+        text-align: center;
+    }
+}
+
+.pa-live-date {
+    display: grid;
+    justify-items: end;
+    gap: 6px;
+}
+
+@media (max-width: 760px) {
+    .pa-live-date {
+        width: 100%;
+        justify-items: start;
+    }
+}

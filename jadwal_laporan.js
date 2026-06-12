@@ -12,21 +12,30 @@
         pendaftar: 'pa_public_registrations_v1'
     };
 
-    let tutors = PAAuth.loadTutors();
-    let siswaData = PAAuth.loadJSON(STORAGE.siswa, []);
-    let laporanData = PAAuth.loadJSON(STORAGE.laporan, []);
-    let jadwalData = PAAuth.loadJSON(STORAGE.jadwal, []);
-    let invoiceData = PAAuth.loadJSON(STORAGE.invoice, []);
-    let pendaftarData = PAAuth.loadJSON(STORAGE.pendaftar, []);
+    PAAuth.migrateLegacyDashboardData(Object.values(STORAGE), session);
+
+    let tutors = PAAuth.loadUserJSON(STORAGE.tutors, []);
+    let siswaData = PAAuth.loadUserJSON(STORAGE.siswa, []);
+    let laporanData = PAAuth.loadUserJSON(STORAGE.laporan, []);
+    let jadwalData = PAAuth.loadUserJSON(STORAGE.jadwal, []);
+    let invoiceData = PAAuth.loadUserJSON(STORAGE.invoice, []);
+    let pendaftarData = PAAuth.loadUserJSON(STORAGE.pendaftar, []);
     let selectedRating = 0;
     let selectedImages = [];
     let calendarDate = new Date();
 
-    function saveSiswa() { PAAuth.saveJSON(STORAGE.siswa, siswaData); }
-    function saveLaporan() { PAAuth.saveJSON(STORAGE.laporan, laporanData); }
-    function saveJadwal() { PAAuth.saveJSON(STORAGE.jadwal, jadwalData); }
-    function saveInvoice() { PAAuth.saveJSON(STORAGE.invoice, invoiceData); }
-    function saveTutors() { PAAuth.saveTutors(tutors); }
+    function saveLocal(key, value, message) {
+        if (window.PACloud && typeof PACloud.saveLocalTable === 'function') {
+            return PACloud.saveLocalTable(key, value, { localText: message || 'Tersimpan lokal • tekan Sinkronkan' });
+        }
+        PAAuth.saveUserJSON(key, value);
+        return value;
+    }
+    function saveSiswa() { return saveLocal(STORAGE.siswa, siswaData); }
+    function saveLaporan() { return saveLocal(STORAGE.laporan, laporanData); }
+    function saveJadwal() { return saveLocal(STORAGE.jadwal, jadwalData); }
+    function saveInvoice() { return saveLocal(STORAGE.invoice, invoiceData); }
+    function saveTutors() { return saveLocal(STORAGE.tutors, tutors); }
     async function saveTutorsOnline() {
         if (window.PACloud && typeof PACloud.saveKeyNow === 'function') {
             tutors = await PACloud.saveKeyNow(STORAGE.tutors, tutors, {
@@ -38,7 +47,7 @@
         saveTutors();
         return tutors;
     }
-    function savePendaftar() { PAAuth.saveJSON(STORAGE.pendaftar, pendaftarData); }
+    function savePendaftar() { return saveLocal(STORAGE.pendaftar, pendaftarData); }
 
     function getTutorPhotoSrc(tutor) {
         if (window.PACloud && typeof PACloud.imageSrc === 'function') {
@@ -105,7 +114,7 @@
         if (desc) {
             desc.textContent = isAdmin
                 ? 'Admin utama bisa mengakses semua tutor, siswa, jadwal, invoice, laporan, statistik, dan download data.'
-                : 'Tutor hanya melihat jadwal, siswa, dan laporan miliknya sendiri.';
+                : 'Tutor melihat jadwal, siswa, laporan, dan invoice miliknya sendiri. Semua perubahan disimpan lokal terlebih dahulu.';
         }
         const note = document.getElementById('siswaRoleNote');
         if (note) {
@@ -124,7 +133,7 @@
     }
 
     function switchTab(tabName) {
-        if ((tabName === 'tutor' || tabName === 'pendaftar' || tabName === 'invoice') && !isAdmin) return;
+        if ((tabName === 'tutor' || tabName === 'pendaftar') && !isAdmin) return;
         document.querySelectorAll('.pa-tab').forEach(btn => btn.classList.toggle('active', btn.dataset.tab === tabName));
         document.querySelectorAll('.pa-panel').forEach(panel => panel.classList.toggle('active', panel.id === 'tab-' + tabName));
         if (tabName === 'jadwal') { renderCalendar(); renderTodaySchedule(); }
@@ -166,7 +175,7 @@
     }
 
     function syncAllSelects() {
-        tutors = PAAuth.loadTutors();
+        tutors = PAAuth.loadUserJSON(STORAGE.tutors, []);
         syncTutorSelects();
         syncSiswaSelects();
     }
@@ -344,7 +353,7 @@
     }
 
     const formInvoice = document.getElementById('formInvoice');
-    if (formInvoice && isAdmin) {
+    if (formInvoice) {
         formInvoice.addEventListener('submit', async function (event) {
             event.preventDefault();
 
@@ -361,6 +370,7 @@
                 id: PAAuth.makeId('invoice'),
                 siswaId,
                 namaSiswa: siswa.nama || '',
+                tutorId: siswa.tutorId || session.tutorId || '',
                 jumlahSesi,
                 total,
                 lunas: false,
@@ -399,7 +409,10 @@
         const counter = document.getElementById('invoiceCount');
         if (!target) return;
 
-        const invoices = [...invoiceData].sort((a, b) => String(b.createdAt || '').localeCompare(String(a.createdAt || '')));
+        const studentIds = new Set(visibleStudents().map(student => String(student.id || '')));
+        const invoices = invoiceData
+            .filter(invoice => isAdmin || String(invoice.tutorId || '') === String(session.tutorId || '') || studentIds.has(String(invoice.siswaId || '')))
+            .sort((a, b) => String(b.createdAt || '').localeCompare(String(a.createdAt || '')));
         if (counter) counter.textContent = `${invoices.length} invoice`;
 
         if (invoices.length === 0) {
@@ -460,7 +473,6 @@
     }
 
     async function toggleInvoicePaid(id) {
-        if (!isAdmin) return;
         const current = invoiceData.find(item => item.id === id);
         if (!current) return;
 
@@ -502,7 +514,6 @@
     }
 
     async function deleteInvoice(id) {
-        if (!isAdmin) return;
         const invoice = invoiceData.find(item => item.id === id);
         if (!invoice) return;
         if (!confirm(`Hapus tagihan atas nama ${invoice.namaSiswa || 'siswa ini'}?`)) return;
@@ -1002,8 +1013,8 @@
      ***********************/
     function renderPendaftar() {
         if (!isAdmin) return;
-        pendaftarData = PAAuth.loadJSON(STORAGE.pendaftar, []);
-        tutors = PAAuth.loadTutors();
+        pendaftarData = PAAuth.loadUserJSON(STORAGE.pendaftar, []);
+        tutors = PAAuth.loadUserJSON(STORAGE.tutors, []);
         const target = document.getElementById('pendaftarList');
         if (!target) return;
 
@@ -1128,7 +1139,7 @@
         const target = document.getElementById('adminTutorList');
         if (!target) return;
 
-        tutors = PAAuth.loadTutors();
+        tutors = PAAuth.loadUserJSON(STORAGE.tutors, []);
 
         if (tutors.length === 0) {
             target.innerHTML = '<p class="pa-empty">Belum ada tutor terdaftar.</p>';
@@ -1162,7 +1173,7 @@
         target.querySelectorAll('[data-toggle-home-tutor]').forEach(btn => {
             btn.addEventListener('click', async () => {
                 const id = btn.dataset.toggleHomeTutor;
-                const current = PAAuth.loadTutors();
+                const current = PAAuth.loadUserJSON(STORAGE.tutors, []);
                 let updatedTutor = null;
                 tutors = current.map(tutor => {
                     if (tutor.id !== id) return tutor;
@@ -1397,14 +1408,20 @@
     if (allJsonBtn) allJsonBtn.addEventListener('click', downloadAllJSON);
 
     /***********************
-     * INIT
+     * LOCAL-FIRST SYNC
      ***********************/
-    function init() {
-        applyRoleUI();
-        PAAuth.updateAuthNav();
-        updateLiveDate();
-        setInterval(updateLiveDate, 30000);
-        syncAllSelects();
+    function reloadDashboardCache() {
+        tutors = PAAuth.loadUserJSON(STORAGE.tutors, []);
+        siswaData = PAAuth.loadUserJSON(STORAGE.siswa, []);
+        laporanData = PAAuth.loadUserJSON(STORAGE.laporan, []);
+        jadwalData = PAAuth.loadUserJSON(STORAGE.jadwal, []);
+        invoiceData = PAAuth.loadUserJSON(STORAGE.invoice, []);
+        pendaftarData = PAAuth.loadUserJSON(STORAGE.pendaftar, []);
+    }
+
+    function renderDashboardData() {
+        syncTutorSelects();
+        syncSiswaSelects();
         renderSiswa();
         renderInvoice();
         renderCalendar();
@@ -1413,7 +1430,90 @@
         renderStatistik();
         renderTutorAdmin();
         renderPendaftar();
+    }
+
+    function formatSyncTime(value) {
+        if (!value) return 'Belum pernah disinkronkan';
+        const date = new Date(value);
+        if (Number.isNaN(date.getTime())) return 'Belum pernah disinkronkan';
+        return 'Terakhir sinkron ' + date.toLocaleString('id-ID', {
+            day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit'
+        });
+    }
+
+    function updateSyncUI(state) {
+        const button = document.getElementById('btnSyncNow');
+        const summary = document.getElementById('syncSummary');
+        if (!button || !summary) return;
+
+        const current = state || (window.PACloud && PACloud.getSyncState ? PACloud.getSyncState() : {});
+        const pending = Number(current.pendingOperations ?? current.pendingCount ?? 0);
+        const syncing = current.syncing === true;
+        button.disabled = syncing;
+        button.classList.toggle('is-syncing', syncing);
+        button.innerHTML = syncing
+            ? '<span class="pa-sync-spinner" aria-hidden="true"></span> Menyinkronkan...'
+            : '<span aria-hidden="true">↻</span> Sinkronkan';
+
+        if (!current.configured) {
+            summary.textContent = pending
+                ? `${pending} perubahan tersimpan lokal • cloud belum diatur`
+                : 'Data lokal aktif • cloud belum diatur';
+            summary.dataset.state = 'warning';
+        } else if (syncing) {
+            summary.textContent = 'Mengirim perubahan dan mengambil data terbaru...';
+            summary.dataset.state = 'syncing';
+        } else if (pending > 0) {
+            summary.textContent = `${pending} perubahan belum disinkronkan`;
+            summary.dataset.state = 'pending';
+        } else {
+            summary.textContent = formatSyncTime(current.lastSync);
+            summary.dataset.state = 'ok';
+        }
+    }
+
+    async function syncDashboardNow() {
+        if (!window.PACloud || typeof PACloud.syncNow !== 'function') return;
+        try {
+            updateSyncUI({ ...PACloud.getSyncState(), syncing: true });
+            await PACloud.syncNow();
+            reloadDashboardCache();
+            renderDashboardData();
+            showToast('Data lokal dan cloud berhasil disinkronkan ✅', '#25D366');
+        } catch (error) {
+            console.error(error);
+            if (error.code === 'UNAUTHORIZED') {
+                showToast('Sesi cloud habis. Data lokal tetap aman—silakan login ulang.', '#c0392b');
+                PAAuth.clearSession();
+                window.location.href = 'login.html?from=jadwal_laporan.html';
+            } else {
+                showToast(error.message || 'Sinkronisasi gagal. Data lokal tetap aman.', '#c0392b');
+            }
+        } finally {
+            updateSyncUI();
+        }
+    }
+
+    window.addEventListener('pa-sync-state', event => updateSyncUI(event.detail || {}));
+    window.addEventListener('pa-cloud-data-updated', function () {
+        reloadDashboardCache();
+        renderDashboardData();
+    });
+
+    /***********************
+     * INIT
+     ***********************/
+    function init() {
+        applyRoleUI();
+        PAAuth.updateAuthNav();
+        updateLiveDate();
+        setInterval(updateLiveDate, 30000);
+        reloadDashboardCache();
+        renderDashboardData();
         resetLaporanForm();
+        updateSyncUI();
+        const syncButton = document.getElementById('btnSyncNow');
+        if (syncButton) syncButton.addEventListener('click', syncDashboardNow);
     }
 
     init();

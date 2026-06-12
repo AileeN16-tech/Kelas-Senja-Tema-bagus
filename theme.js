@@ -407,6 +407,7 @@
         const panel = document.createElement('section');
         panel.id = 'themePanel';
         panel.className = 'pa-theme-panel ks-theme-panel';
+        panel.hidden = true;
         panel.setAttribute('aria-label', 'Editor tema dashboard');
         panel.innerHTML = `
             <div class="ks-theme-header">
@@ -487,19 +488,31 @@
             }, selectedTheme);
         }
 
+        function setPanelOpen(open) {
+            panel.hidden = !open;
+            panel.classList.toggle('show', open);
+            btn.classList.toggle('is-active', open);
+            btn.setAttribute('aria-expanded', String(open));
+            if (open) {
+                updatePanelSelection();
+                requestAnimationFrame(() => panel.querySelector('[data-theme-preset]')?.focus({ preventScroll: true }));
+            }
+        }
+
         function closePanel() {
-            panel.classList.remove('show');
-            btn.setAttribute('aria-expanded', 'false');
+            setPanelOpen(false);
         }
 
         fillInputs(selectedTheme);
         updatePanelSelection();
 
-        btn.addEventListener('click', function () {
-            const open = panel.classList.toggle('show');
-            btn.setAttribute('aria-expanded', String(open));
-            if (open) updatePanelSelection();
+        btn.addEventListener('click', function (event) {
+            event.preventDefault();
+            event.stopPropagation();
+            setPanelOpen(panel.hidden);
         });
+
+        panel.addEventListener('click', event => event.stopPropagation());
 
         document.addEventListener('click', function (event) {
             if (!panel.contains(event.target) && !btn.contains(event.target)) closePanel();
@@ -595,8 +608,14 @@
         refresh: function () { return applyTheme(getResolvedTheme()); }
     };
 
-    document.addEventListener('DOMContentLoaded', function () {
+    function initThemeUI() {
         initMobileNavigation();
         createThemePanel();
-    });
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initThemeUI, { once: true });
+    } else {
+        initThemeUI();
+    }
 })();
