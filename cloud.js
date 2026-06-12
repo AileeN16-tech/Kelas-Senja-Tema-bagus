@@ -8,7 +8,7 @@
     'use strict';
 
     const CONFIG = {
-        SCRIPT_URL: 'PASTE_URL_WEB_APP_GOOGLE_APPS_SCRIPT_DI_SINI'
+        SCRIPT_URL: 'https://script.google.com/macros/library/d/1aG7uoL-2RrN1kIkpsWQ4cX42y6vzmM4UKR-mTaCpyvyw1h1f0DSXQLQy/2'
     };
 
     const KEY_TO_TABLE = {
