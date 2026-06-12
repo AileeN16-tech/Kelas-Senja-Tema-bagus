@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#0A3458">
+    <title>Pendaftaran Tutor - Kelas Senja</title>
+    <link rel="icon" type="image/png" href="logo-kelas-senja.png">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <nav>
+        <a class="logo" href="index.html#home" aria-label="Kelas Senja"><img src="logo-kelas-senja.png" alt="Logo Kelas Senja"><span>Kelas Senja</span></a>
+        <ul class="nav-links">
+            <li><a href="index.html#home">Beranda</a></li>
+            <li><a href="index.html#tentang">Tentang Kami</a></li>
+            <li><a href="pendaftaran_tutor.html" class="btn-daftar">Daftar Tutor</a></li>
+            <li><a href="index.html#galeri">Galeri</a></li>
+            <li><a href="login.html" data-auth-link>Login</a></li>
+        </ul>
+    </nav>
+
+    <section class="tutor-page">
+        <div class="tutor-wrap">
+            <div class="tutor-info">
+                <h1>Pendaftaran Tutor Kelas Senja</h1>
+                <p>Setelah daftar, sistem otomatis membuat username dan password tutor untuk login ke halaman laporan harian.</p>
+                <ul>
+                    <li>✅ Foto dan nama tutor tampil di halaman awal</li>
+                    <li>✅ Akun tutor langsung bisa dipakai login</li>
+                    <li>✅ Tutor hanya melihat siswa dan jadwal miliknya</li>
+                    <li>✅ Admin utama tetap bisa melihat semua data</li>
+                </ul>
+            </div>
+
+            <div>
+                <div class="tutor-form-card">
+                    <h2>Form Calon Tutor</h2>
+                    <p class="form-intro">Isi data tutor. Username dan password akan muncul setelah berhasil daftar.</p>
+
+                    <div class="tutor-photo-box">
+                        <input type="file" id="tutorFoto" accept="image/*" hidden>
+                        <div class="tutor-photo-preview" id="tutorFotoPreview"><span>👤</span></div>
+                        <button type="button" class="tutor-photo-btn" id="btnPilihFoto">📷 Tambah Foto Profil</button>
+                        <small>Foto akan tampil di halaman awal dan tersimpan di data tutor.</small>
+                    </div>
+
+                    <form id="formTutor" class="tutor-form">
+                        <input type="text" id="tutorNama" placeholder="Nama Lengkap" required>
+                        <input type="text" id="tutorWA" placeholder="Nomor WhatsApp Aktif" required>
+                        <input type="email" id="tutorEmail" placeholder="Email Aktif" required>
+                        <input type="text" id="tutorDomisili" placeholder="Domisili" required>
+                        <select id="tutorPendidikan" required>
+                            <option value="">Pendidikan Terakhir</option>
+                            <option>SMA/SMK</option>
+                            <option>D3</option>
+                            <option>S1</option>
+                            <option>S2</option>
+                            <option>Lainnya</option>
+                        </select>
+                        <input type="text" id="tutorMapel" placeholder="Mapel yang Dikuasai, contoh: Matematika, Bahasa Inggris" required>
+                        <input type="text" id="tutorJenjang" placeholder="Jenjang yang Bisa Diajar, contoh: TK, SD, SMP" required>
+                        <textarea id="tutorPengalaman" placeholder="Ceritakan pengalaman mengajar / skill kamu" required></textarea>
+                        <textarea id="tutorJadwal" placeholder="Jadwal tersedia, contoh: Senin-Jumat 16.00-20.00" required></textarea>
+
+                        <div class="tutor-buttons">
+                            <button type="submit" class="cta-button">✅ Daftar & Buat Akun</button>
+                            <button type="button" class="tutor-secondary-btn" id="btnPreviewTutor">👁️ Preview</button>
+                            <button type="button" class="tutor-secondary-btn" id="btnResetTutor">🔄 Reset</button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="tutor-preview" id="tutorPreview"></div>
+                <div class="pa-credential-card" id="credentialCard" style="display:none;"></div>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <p>&copy; 2026 Kelas Senja. All Rights Reserved.</p>
+        <p>Semanu, Gunungkidul Yogyakarta | Telp: 0859-3031-7914</p>
+    </footer>
+
+    <script src="auth.js"></script>
+    <script src="cloud.js"></script>
+    <script src="theme.js"></script>
+    <script>
+        PACloud.boot({ publicOnly: true }).finally(function(){
+            PACloud.loadScript('pendaftaran_tutor.js');
+        });
+    </script>
+</body>
+</html>

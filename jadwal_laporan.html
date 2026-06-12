@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#0A3458">
+    <title>Jadwal & Laporan - Kelas Senja</title>
+    <link rel="icon" type="image/png" href="logo-kelas-senja.png">
+    <link rel="stylesheet" href="style.css">
+    <script src="auth.js"></script>
+    <script>
+        PAAuth.requireLogin();
+    </script>
+</head>
+<body>
+    <nav>
+        <a class="logo" href="index.html#home" aria-label="Kelas Senja"><img src="logo-kelas-senja.png" alt="Logo Kelas Senja"><span>Kelas Senja</span></a>
+        <ul class="nav-links">
+            <li><a href="index.html#home">Beranda</a></li>
+            <li><a href="index.html#tentang">Tentang Kami</a></li>
+            <li><a href="pendaftaran_tutor.html">Daftar Tutor</a></li>
+            <li><a href="index.html#galeri">Galeri</a></li>
+            <li><a href="jadwal_laporan.html" class="btn-daftar">Dashboard</a></li>
+        </ul>
+    </nav>
+
+    <section class="pa-admin-section">
+        <div class="pa-admin-wrap">
+            <div class="pa-admin-head">
+                <div>
+                    <span class="pa-kicker">EduTrack • Kelas Senja</span>
+                    <h2>Jadwal Mengajar & Laporan Harian</h2>
+                    <p id="roleDescription">Dashboard untuk jadwal, data siswa, invoice, laporan harian, riwayat, statistik, dan data tutor.</p>
+                </div>
+                <div class="pa-live-date">
+                    <strong id="paTanggalHariIni">Hari ini</strong>
+                    <span id="paJamHariIni">--:--</span>
+                    <div data-user-badge class="user-badge-space"></div>
+                </div>
+            </div>
+
+            <div class="pa-tabs" role="tablist">
+                <button type="button" class="pa-tab active" data-tab="jadwal">📅 Jadwal Mengajar</button>
+                <button type="button" class="pa-tab" data-tab="laporan">✏️ Input Laporan</button>
+                <button type="button" class="pa-tab" data-tab="siswa">👤 Data Siswa</button>
+                <button type="button" class="pa-tab admin-only" data-tab="invoice">🧾 Invoice</button>
+                <button type="button" class="pa-tab" data-tab="riwayat">📋 Riwayat Laporan</button>
+                <button type="button" class="pa-tab" data-tab="statistik">📊 Statistik</button>
+                <button type="button" class="pa-tab admin-only" data-tab="tutor">👨‍🏫 Data Tutor</button>
+                <button type="button" class="pa-tab admin-only" data-tab="pendaftar">📝 Pendaftar Baru</button>
+            </div>
+
+            <div class="pa-panel active" id="tab-jadwal">
+                <div class="pa-grid-2">
+                    <div class="pa-card pa-dark-card">
+                        <div class="pa-card-title">🗓️ Jadwal Hari Ini</div>
+                        <h3 id="todayScheduleTitle">Hari ini</h3>
+                        <p id="todayScheduleCount">Belum ada sesi mengajar hari ini</p>
+                        <div id="todayScheduleList" class="pa-today-list"></div>
+                    </div>
+
+                    <div class="pa-card admin-only" id="jadwalFormCard">
+                        <div class="pa-card-title">➕ Tambah / Edit Jadwal</div>
+                        <form id="formJadwal" class="pa-form-grid">
+                            <input type="hidden" id="jadwalId">
+                            <div class="pa-form-group">
+                                <label>Tanggal</label>
+                                <input type="date" id="jadwalTanggal" required>
+                            </div>
+                            <div class="pa-form-group">
+                                <label>Jam</label>
+                                <input type="time" id="jadwalJam" required>
+                            </div>
+                            <div class="pa-form-group">
+                                <label>Tentor</label>
+                                <select id="jadwalTutor" required></select>
+                            </div>
+                            <div class="pa-form-group">
+                                <label>Nama Siswa</label>
+                                <select id="jadwalSiswa" required></select>
+                            </div>
+                            <div class="pa-form-group">
+                                <label>Mata Pelajaran</label>
+                                <input type="text" id="jadwalMapel" placeholder="Contoh: Matematika" required>
+                            </div>
+                            <div class="pa-form-group">
+                                <label>Warna Tanda</label>
+                                <select id="jadwalWarna">
+                                    <option value="pink">Pink</option>
+                                    <option value="biru">Biru</option>
+                                    <option value="kuning">Kuning</option>
+                                    <option value="hijau">Hijau</option>
+                                    <option value="ungu">Ungu</option>
+                                    <option value="merah">Merah</option>
+                                </select>
+                            </div>
+                            <div class="pa-form-group pa-full">
+                                <label>Catatan Jadwal</label>
+                                <input type="text" id="jadwalCatatan" placeholder="Opsional">
+                            </div>
+                            <div class="pa-form-actions">
+                                <button type="submit" class="pa-btn pa-btn-primary">💾 Simpan Jadwal</button>
+                                <button type="button" class="pa-btn pa-btn-soft" id="btnResetJadwal">🔄 Reset</button>
+                                <button type="button" class="pa-btn pa-btn-danger" id="btnHapusJadwal">🗑️ Hapus</button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div class="pa-card tutor-only" id="tutorScheduleInfo" style="display:none;">
+                        <div class="pa-card-title">Info Jadwal Tutor</div>
+                        <p>Jadwal yang tampil hanya jadwal milik akun tutor yang sedang login. Penambahan dan edit jadwal hanya bisa dilakukan oleh admin utama.</p>
+                    </div>
+                </div>
+
+                <div class="pa-card">
+                    <div class="pa-calendar-head">
+                        <h3 id="calendarTitle">Bulan</h3>
+                        <div class="pa-calendar-actions">
+                            <button type="button" class="pa-small-btn" id="prevMonth">‹</button>
+                            <button type="button" class="pa-small-btn" id="goToday">Hari Ini</button>
+                            <button type="button" class="pa-small-btn" id="nextMonth">›</button>
+                        </div>
+                    </div>
+                    <div class="pa-weekdays">
+                        <span>MIN</span><span>SEN</span><span>SEL</span><span>RAB</span><span>KAM</span><span>JUM</span><span>SAB</span>
+                    </div>
+                    <div id="calendarGrid" class="pa-calendar-grid"></div>
+                    <p class="pa-help">Admin bisa klik jadwal untuk edit. Tutor hanya melihat jadwal miliknya.</p>
+                </div>
+            </div>
+
+            <div class="pa-panel" id="tab-laporan">
+                <div class="pa-card">
+                    <div class="pa-card-title">📝 Informasi Laporan Harian</div>
+                    <form id="formLaporan">
+                        <input type="hidden" id="laporanId">
+                        <div class="pa-form-grid">
+                            <div class="pa-form-group admin-only">
+                                <label>Tentor</label>
+                                <select id="lapTutor"></select>
+                            </div>
+                            <div class="pa-form-group">
+                                <label>Nama Siswa</label>
+                                <select id="lapSiswa" required></select>
+                            </div>
+                            <div class="pa-form-group">
+                                <label>Tanggal Les</label>
+                                <input type="date" id="lapTanggal" required>
+                            </div>
+                            <div class="pa-form-group">
+                                <label>Jam Mulai</label>
+                                <input type="time" id="lapMulai">
+                            </div>
+                            <div class="pa-form-group">
+                                <label>Jam Selesai</label>
+                                <input type="time" id="lapSelesai">
+                            </div>
+                            <div class="pa-form-group">
+                                <label>Kehadiran</label>
+                                <select id="lapKehadiran">
+                                    <option value="Hadir">✅ Hadir</option>
+                                    <option value="Izin">📝 Izin</option>
+                                    <option value="Sakit">🤒 Sakit</option>
+                                    <option value="Alpa">❌ Alpa</option>
+                                </select>
+                            </div>
+                            <div class="pa-form-group">
+                                <label>Kelas / Tingkat</label>
+                                <input type="text" id="lapKelas" placeholder="Otomatis dari data siswa / isi manual">
+                            </div>
+                            <div class="pa-form-group pa-full">
+                                <label>Mata Pelajaran</label>
+                                <input type="text" id="lapMapel" placeholder="Isi manual, contoh: Matematika, Mengaji, Bahasa Inggris" required>
+                            </div>
+                            <div class="pa-form-group pa-full">
+                                <label>Materi yang Dipelajari</label>
+                                <textarea id="lapMateri" placeholder="Contoh: Pecahan, Iqra halaman 5, grammar simple present..." required></textarea>
+                            </div>
+                            <div class="pa-form-group pa-full">
+                                <label>Aktivitas Belajar</label>
+                                <textarea id="lapAktivitas" placeholder="Contoh: Penjelasan konsep, latihan soal, membaca bersama..."></textarea>
+                            </div>
+                            <div class="pa-form-group pa-full">
+                                <label>PR / Tugas</label>
+                                <input type="text" id="lapPR" placeholder="Kosongkan jika tidak ada PR">
+                            </div>
+                            <div class="pa-form-group">
+                                <label>Nilai / Skor</label>
+                                <input type="number" id="lapNilai" min="0" max="100" placeholder="0-100">
+                            </div>
+                            <div class="pa-form-group">
+                                <label>Rating Pemahaman</label>
+                                <div class="pa-stars" id="lapRating">
+                                    <button type="button" data-star="1">★</button>
+                                    <button type="button" data-star="2">★</button>
+                                    <button type="button" data-star="3">★</button>
+                                    <button type="button" data-star="4">★</button>
+                                    <button type="button" data-star="5">★</button>
+                                </div>
+                            </div>
+                            <div class="pa-form-group pa-full">
+                                <label>Catatan Guru</label>
+                                <textarea id="lapCatatan" placeholder="Tuliskan observasi, saran, atau pesan khusus untuk orang tua..."></textarea>
+                            </div>
+                            <div class="pa-form-group pa-full">
+                                <label>Tambah Gambar Laporan</label>
+                                <input type="file" id="lapGambar" accept="image/*" multiple>
+                                <div id="lapImagePreview" class="pa-image-preview"></div>
+                                <p class="pa-help">Gambar akan ikut tersimpan di riwayat dan bisa masuk file Excel laporan.</p>
+                            </div>
+                        </div>
+                        <div class="pa-form-actions">
+                            <button type="submit" class="pa-btn pa-btn-primary">💾 Simpan Laporan</button>
+                            <button type="button" class="pa-btn pa-btn-soft" id="btnPreviewLaporan">👁️ Preview</button>
+                            <button type="button" class="pa-btn pa-btn-soft" id="btnResetLaporan">🔄 Reset</button>
+                            <button type="button" class="pa-btn pa-btn-wa" id="btnKirimWa">📲 Kirim ke WA Ortu</button>
+                        </div>
+                    </form>
+                </div>
+                <div id="previewLaporan" class="pa-report-preview"></div>
+            </div>
+
+            <div class="pa-panel" id="tab-siswa">
+                <div class="pa-grid-2">
+                    <div class="pa-card admin-only" id="siswaFormCard">
+                        <div class="pa-card-title">➕ Tambah / Edit Siswa</div>
+                        <form id="formSiswa" class="pa-form-grid">
+                            <input type="hidden" id="siswaId">
+                            <div class="pa-form-group">
+                                <label>Nama Siswa</label>
+                                <input type="text" id="siswaNama" placeholder="Contoh: Azka" required>
+                            </div>
+                            <div class="pa-form-group">
+                                <label>Kelas</label>
+                                <input type="text" id="siswaKelas" placeholder="Contoh: SD Kelas 3">
+                            </div>
+                            <div class="pa-form-group">
+                                <label>Nama Orang Tua</label>
+                                <input type="text" id="siswaOrtu" placeholder="Nama orang tua / wali">
+                            </div>
+                            <div class="pa-form-group">
+                                <label>WhatsApp Orang Tua</label>
+                                <input type="text" id="siswaWA" placeholder="Contoh: 0859xxxx">
+                            </div>
+                            <div class="pa-form-group pa-full">
+                                <label>Tentor yang Pegang Siswa</label>
+                                <select id="siswaTutor"></select>
+                            </div>
+                            <div class="pa-form-actions">
+                                <button type="submit" class="pa-btn pa-btn-primary">💾 Simpan Siswa</button>
+                                <button type="button" class="pa-btn pa-btn-soft" id="btnResetSiswa">🔄 Reset</button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div class="pa-card">
+                        <div class="pa-card-title">👤 Daftar Siswa</div>
+                        <p id="siswaRoleNote" class="pa-help"></p>
+                        <div id="daftarSiswa" class="pa-list"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pa-panel" id="tab-invoice">
+                <div class="pa-invoice-layout admin-only">
+                    <div class="pa-card pa-invoice-form-card">
+                        <div class="pa-card-title">🧾 Buat Tagihan</div>
+                        <p class="pa-help pa-invoice-intro">Isi tiga informasi utama untuk membuat invoice siswa.</p>
+
+                        <form id="formInvoice" class="pa-invoice-form">
+                            <div class="pa-form-group">
+                                <label for="invoiceSiswa">Nama Siswa</label>
+                                <select id="invoiceSiswa" required></select>
+                            </div>
+
+                            <div class="pa-form-group">
+                                <label for="invoiceJumlahSesi">Jumlah Sesi</label>
+                                <div class="pa-input-suffix">
+                                    <input type="number" id="invoiceJumlahSesi" min="1" step="1" inputmode="numeric" placeholder="Contoh: 4" required>
+                                    <span>sesi</span>
+                                </div>
+                            </div>
+
+                            <div class="pa-form-group">
+                                <label for="invoiceTotal">Total Tagihan</label>
+                                <div class="pa-input-prefix">
+                                    <span>Rp</span>
+                                    <input type="number" id="invoiceTotal" min="0" step="1000" inputmode="numeric" placeholder="Contoh: 100000" required>
+                                </div>
+                            </div>
+
+                            <button type="submit" class="pa-btn pa-btn-primary pa-invoice-submit">
+                                Simpan Tagihan
+                            </button>
+                        </form>
+                    </div>
+
+                    <div class="pa-card pa-invoice-list-card">
+                        <div class="pa-invoice-list-head">
+                            <div>
+                                <div class="pa-card-title">Daftar Invoice</div>
+                                <p class="pa-help">Kelola status pembayaran, salin tagihan, atau hapus invoice.</p>
+                            </div>
+                            <span class="pa-invoice-count" id="invoiceCount">0 invoice</span>
+                        </div>
+                        <div id="invoiceList" class="pa-invoice-list" aria-live="polite"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pa-panel" id="tab-riwayat">
+                <div class="pa-card">
+                    <div class="pa-card-title">📋 Riwayat Laporan</div>
+                    <div class="pa-search-row">
+                        <input type="text" id="searchRiwayat" placeholder="Cari nama siswa, mapel, tanggal, atau tutor...">
+                        <button type="button" class="pa-btn pa-btn-soft" id="btnDownloadLaporanExcel">⬇️ Download Excel + Gambar</button>
+                        <button type="button" class="pa-btn pa-btn-soft" id="btnDownloadLaporanCSV">⬇️ Download CSV</button>
+                    </div>
+                    <div id="riwayatList" class="pa-list"></div>
+                </div>
+            </div>
+
+            <div class="pa-panel" id="tab-statistik">
+                <div class="pa-stats-grid">
+                    <div class="pa-stat-card"><span>Total Siswa</span><strong id="statSiswa">0</strong></div>
+                    <div class="pa-stat-card"><span>Total Laporan</span><strong id="statLaporan">0</strong></div>
+                    <div class="pa-stat-card"><span>Sesi Hadir</span><strong id="statHadir">0</strong></div>
+                    <div class="pa-stat-card"><span>Rata-rata Nilai</span><strong id="statNilai">0</strong></div>
+                </div>
+                <div class="pa-card">
+                    <div class="pa-card-title">📊 Rekap Mata Pelajaran</div>
+                    <div id="mapelStats"></div>
+                </div>
+                <div class="pa-card admin-only">
+                    <div class="pa-card-title">⬇️ Download Data</div>
+                    <div class="pa-form-actions">
+                        <button type="button" class="pa-btn pa-btn-primary" id="btnDownloadSemuaJSON">Download Semua Data JSON + Gambar</button>
+                        <button type="button" class="pa-btn pa-btn-soft" id="btnDownloadSiswaCSV">Download Siswa CSV</button>
+                        <button type="button" class="pa-btn pa-btn-soft" id="btnDownloadJadwalCSV">Download Jadwal CSV</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pa-panel" id="tab-tutor">
+                <div class="pa-card admin-only">
+                    <div class="pa-card-title">👨‍🏫 Data Tutor</div>
+                    <div class="pa-form-actions action-row-spaced">
+                        <button type="button" class="pa-btn pa-btn-primary" id="btnDownloadTutorCSV">⬇️ Download Data Tutor CSV</button>
+                    </div>
+                    <div id="adminTutorList" class="pa-list"></div>
+                </div>
+            </div>
+
+            <div class="pa-panel" id="tab-pendaftar">
+                <div class="pa-card admin-only">
+                    <div class="pa-card-title">📝 Pendaftar Siswa Baru dari Halaman Umum</div>
+                    <p class="pa-help">Data ini berasal dari tombol Daftar Sekarang di halaman utama. Admin cukup pilih tutor lalu klik Setujui, siswa otomatis masuk ke tab Data Siswa.</p>
+                    <div class="pa-form-actions action-row-spaced">
+                        <button type="button" class="pa-btn pa-btn-primary" id="btnDownloadPendaftarCSV">⬇️ Download Pendaftar CSV</button>
+                    </div>
+                    <div id="pendaftarList" class="pa-list"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <p>&copy; 2026 Kelas Senja. All Rights Reserved.</p>
+        <p>Semanu, Gunungkidul Yogyakarta | Telp: 0859-3031-7914</p>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
+    <script src="cloud.js"></script>
+    <script src="theme.js"></script>
+    <script>
+        PACloud.boot().then(function(result){
+            if (!result || result.unauthorized || result.offline) return;
+            PACloud.loadScript('jadwal_laporan.js');
+        });
+    </script>
+</body>
+</html>

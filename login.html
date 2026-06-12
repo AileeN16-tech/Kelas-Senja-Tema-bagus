@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#0A3458">
+    <title>Login - Kelas Senja</title>
+    <link rel="icon" type="image/png" href="logo-kelas-senja.png">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <nav>
+        <a class="logo" href="index.html#home" aria-label="Kelas Senja"><img src="logo-kelas-senja.png" alt="Logo Kelas Senja"><span>Kelas Senja</span></a>
+        <ul class="nav-links">
+            <li><a href="index.html#home">Beranda</a></li>
+            <li><a href="index.html#tentang">Tentang Kami</a></li>
+            <li><a href="pendaftaran_tutor.html">Daftar Tutor</a></li>
+            <li><a href="index.html#galeri">Galeri</a></li>
+        </ul>
+    </nav>
+
+    <section class="pa-login-page">
+        <div class="pa-login-card">
+            <div class="pa-login-icon">🔐</div>
+            <h1>Login Kelas Senja</h1>
+            <p>Masuk sebagai admin utama atau tutor untuk mengakses jadwal dan laporan harian.</p>
+
+            <form id="loginForm" class="pa-login-form">
+                <input type="text" id="loginUsername" placeholder="Username" autocomplete="username" required>
+                <input type="password" id="loginPassword" placeholder="Password" autocomplete="current-password" required>
+                <button type="submit" class="cta-button">Masuk</button>
+            </form>
+
+            <div class="pa-login-links">
+                <a href="lupa-password.html">Lupa password?</a>
+                <span>Password harus sama dengan data akun di Google Spreadsheet.</span>
+            </div>
+
+            <div id="loginStatus" class="pa-login-status"></div>
+        </div>
+    </section>
+
+    <footer>
+        <p>&copy; 2026 Kelas Senja. All Rights Reserved.</p>
+        <p>Semanu, Gunungkidul Yogyakarta | Telp: 0859-3031-7914</p>
+    </footer>
+
+    <script src="auth.js"></script>
+    <script src="cloud.js"></script>
+    <script src="theme.js"></script>
+    <script>
+        PACloud.loadScript('login.js');
+    </script>
+</body>
+</html>

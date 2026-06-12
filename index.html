@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#0A3458">
+    <title>Kelas Senja - Bimbingan Belajar Anak</title>
+    <link rel="icon" type="image/png" href="logo-kelas-senja.png">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <nav>
+        <a class="logo" href="index.html#home" aria-label="Kelas Senja"><img src="logo-kelas-senja.png" alt="Logo Kelas Senja"><span>Kelas Senja</span></a>
+        <ul class="nav-links">
+            <li><a href="#home">Beranda</a></li>
+            <li><a href="#tentang">Tentang Kami</a></li>
+            <li><a href="pendaftaran_tutor.html">Daftar Tutor</a></li>
+            <li><a href="#galeri">Galeri</a></li>
+            <li><a href="#contact" class="btn-daftar">Daftar Sekarang</a></li>
+            <li><a href="login.html" data-auth-link>Login</a></li>
+        </ul>
+    </nav>
+
+    <header id="home" class="hero">
+        <div class="hero-content">
+            <img class="hero-logo" src="logo-kelas-senja.png" alt="Logo Kelas Senja">
+            <span class="hero-kicker">Bimbingan Belajar Anak • Semanu</span>
+            <h1>Wujudkan Masa Depan Cerahmu!</h1>
+            <p>Belajar lebih terarah dalam suasana hangat bersama tutor berpengalaman untuk jenjang TK, SD, dan SMP.</p>
+            <div class="hero-actions">
+                <a href="#contact" class="cta-button">Daftar Sekarang</a>
+                <a href="#tentang" class="cta-button hero-secondary">Kenali Kelas Senja</a>
+            </div>
+        </div>
+    </header>
+
+    <section id="contact" class="contact-section">
+        <div class="container">
+            <h2>Pendaftaran Siswa Baru</h2>
+            <p>Isi formulir di bawah ini. Data pendaftaran akan tersimpan online dan admin bisa menindaklanjuti.</p>
+
+            <form class="form-daftar" id="formDaftarSiswaUmum">
+                <input type="text" id="publicNamaSiswa" placeholder="Nama Lengkap Siswa" required>
+                <input type="text" id="publicNamaOrtu" placeholder="Nama Orang Tua/Wali" required>
+                <input type="text" id="publicWaOrtu" placeholder="Nomor WhatsApp Orang Tua" required>
+                <input type="email" id="publicEmail" placeholder="Email Aktif">
+                <select id="publicJenjang" required>
+                    <option value="">Pilih Jenjang Pendidikan</option>
+                    <option value="TK">TK</option>
+                    <option value="SD">SD</option>
+                    <option value="SMP">SMP</option>
+                </select>
+                <textarea id="publicCatatan" placeholder="Catatan tambahan, contoh: ingin les matematika, jadwal sore, dll."></textarea>
+
+                <button type="submit" class="cta-button">📩 Kirim Pendaftaran</button>
+            </form>
+
+            <div id="publicDaftarResult" class="pa-public-result" style="display:none;"></div>
+        </div>
+    </section>
+
+    <section id="tentang" class="contact-section">
+        <div class="container">
+            <h2>Tentang Kelas Senja</h2>
+            <div class="section-copy">
+                <p>
+                    <strong>Kelas Senja</strong> adalah bimbingan belajar anak yang berlokasi di Semanu, Gunungkidul.
+                    Kami membantu siswa TK, SD, dan SMP belajar lebih terarah melalui tutor profesional,
+                    jadwal rapi, dan laporan harian yang bisa dipantau orang tua.
+                </p>
+            </div>
+
+            <h3 class="section-subtitle">Tim Pengajar Kami</h3>
+            <p class="section-supporting">Tutor yang tampil di sini adalah tutor yang sudah dipilih oleh admin utama.</p>
+            <div id="publicTutorList" class="pa-public-tutor-grid"></div>
+        </div>
+    </section>
+
+    <section id="galeri" class="contact-section">
+        <div class="container">
+            <h2>Galeri Kegiatan</h2>
+            <p>Dokumentasi kegiatan belajar Kelas Senja.</p>
+
+            <div id="galleryControl" class="pa-gallery-control" style="display:none;">
+                <input type="file" id="galleryInput" accept="image/*" hidden>
+                <button type="button" class="cta-button" id="btnTambahGaleri">➕ Tambah Gambar</button>
+                <p class="control-note">Tombol ini hanya muncul setelah login sebagai admin utama.</p>
+            </div>
+
+            <div id="galleryGrid" class="pa-gallery-grid"></div>
+        </div>
+    </section>
+
+    <footer>
+        <p>&copy; 2026 Kelas Senja. All Rights Reserved.</p>
+        <p>Semanu, Gunungkidul Yogyakarta | Telp: 0859-3031-7914</p>
+    </footer>
+
+    <script src="auth.js"></script>
+    <script src="cloud.js"></script>
+    <script src="theme.js"></script>
+    <script>
+        PACloud.boot({ publicOnly: true }).finally(function(){
+            PACloud.loadScript('public.js').then(function(){
+                return PACloud.loadScript('galeri.js');
+            });
+        });
+    </script>
+</body>
+</html>
