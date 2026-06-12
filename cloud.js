@@ -5,7 +5,7 @@
 */
 (function () {
     const CONFIG = {
-        SCRIPT_URL: 'PASTE_URL_WEB_APP_GOOGLE_APPS_SCRIPT_DI_SINI'
+        SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbyRqMJqYRWzbFzIwwlqhCmlFcLF3c68sEODa98IjdOXg_9jpitz4MP69v14S2oLjlI/exec'
     };
 
     const KEY_TO_TABLE = {
